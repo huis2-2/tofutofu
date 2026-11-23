@@ -2,3 +2,8 @@ build/
 install/
 log/
 *.save
+__pycache__/
+*.mcap
+*.mp4
+datasets/**/rosbag/
+datasets/**/rosbag.log
