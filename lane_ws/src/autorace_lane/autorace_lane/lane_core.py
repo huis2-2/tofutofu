@@ -30,7 +30,7 @@ TARGET_LEN = 15
 @dataclass
 class LaneParams:
     lane_width: float = 0.55
-    x_min: float = 0.30          # 카메라에 보이는 가장 가까운 지면 (뒷바퀴 기준)
+    x_min: float = 0.32          # 카메라에 보이는 가장 가까운 지면 (뒷바퀴 기준)
     x_max: float = 1.20
     bin_size: float = 0.08
     margin: float = 0.12         # 예상 위치 ± margin 안의 점만 사용

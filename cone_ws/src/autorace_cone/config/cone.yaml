@@ -1,13 +1,13 @@
 cone_node:
   ros__parameters:
-    lidar_x: 0.20          # objavoid.yaml 과 같게
+    lidar_x: 0.26          # 실측: 앞바퀴 축 위 (objavoid.yaml 과 같게)
     lidar_yaw: 3.14159265
     lidar_flip: false
     range_min: 0.05
     range_max: 2.0
     cluster_gap: 0.08      # 이보다 떨어진 점은 다른 물체
     max_cone_size: 0.18    # 이보다 큰 군집(LIMO, 벽)은 콘 아님
-    wheelbase: 0.26
+    wheelbase: 0.26        # 실측
     roi_x_min: 0.05
     roi_x_max: 1.6
     roi_y: 1.0

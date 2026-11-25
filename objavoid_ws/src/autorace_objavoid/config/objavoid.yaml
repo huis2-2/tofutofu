@@ -1,14 +1,14 @@
 objavoid_node:
   ros__parameters:
-    # TODO(실측) LiDAR 장착: 뒷바퀴 축에서 앞으로 lidar_x, 0도 방향이 차 앞에서 돌아간 각 lidar_yaw
-    # RPLIDAR 는 보통 케이블 쪽이 뒤라서 yaw=pi. rviz 에서 /scan 보고 앞 물체가 +x 에 오게 맞추기
-    lidar_x: 0.20
+    # LiDAR 장착 (실측): 앞바퀴 축 바로 위 = 뒷바퀴 축에서 0.26 m, 높이 0.14 m
+    # TODO(확인) lidar_yaw: RPLIDAR 는 보통 케이블 쪽이 뒤라서 pi. rviz 에서 앞 물체가 +x 인지 확인
+    lidar_x: 0.26
     lidar_yaw: 3.14159265
     lidar_flip: false
     range_min: 0.05
     range_max: 3.0
     lane_width: 0.55
-    front: 0.26            # 뒷바퀴 → 차 앞 범퍼 (대략 축거)
+    front: 0.26            # 뒷바퀴 → 차 앞 끝. 범퍼가 앞바퀴보다 튀어나와 있으면 그만큼 더하기
     check_dist: 0.9        # 앞 범퍼에서 이 거리 안이 막히면 차선 변경
     corridor_half: 0.17    # 차 폭/2 + 여유
     min_points: 4

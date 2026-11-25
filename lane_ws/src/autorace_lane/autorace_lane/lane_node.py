@@ -40,8 +40,8 @@ class LaneNode(Node):
         self.calib_file = d('calib_file', '').value
         self.image_width = int(d('image_width', 640).value)
         self.image_height = int(d('image_height', 480).value)
-        self.cam_x = float(d('cam_x', 0.25).value)
-        self.cam_h = float(d('cam_h', 0.20).value)
+        self.cam_x = float(d('cam_x', 0.33).value)
+        self.cam_h = float(d('cam_h', 0.115).value)
         self.pitch_deg = float(d('pitch_deg', 57.0).value)
         self.hfov_deg = float(d('hfov_deg', 100.0).value)
         self.y_max = float(d('y_max', 1.5).value)

@@ -7,10 +7,10 @@ Run with ROS 2 sourced:
   python3 drive_record.py
 
 Keys are read from the camera window (click it first so it has focus):
-  w / s   : speed +step / -step (below 1500 us is reverse)
+  w / s   : speed +step / -step (below 1680 us is reverse/brake)
   a / d   : steering left / right
   c       : steering center
-  space   : stop (ESC neutral 1500 us)
+  space   : stop (ESC neutral 1680 us)
   r       : pause / resume JPEG saving (the rosbag keeps recording)
   p       : save one photo now
   q / ESC : quit (steering centered, throttle neutral, MUX released)
@@ -80,19 +80,19 @@ MUX_DUTY = 10.0
 STEERING_CH = 8
 THROTTLE_CH = 9
 
-NEUTRAL_US = 1500
+NEUTRAL_US = 1680  # 실측 정지 (1765 부터 바퀴가 돎, 최고속 1950)
 STEERING_CENTER_US = 1660
 STEERING_LEFT_US = 2000
 STEERING_RIGHT_US = 1400
 
 # Hard bounds so a typo in the options cannot send a full-throttle pulse.
-ABSOLUTE_MAX_FORWARD_US = 2000
+ABSOLUTE_MAX_FORWARD_US = 1950
 ABSOLUTE_MIN_REVERSE_US = 1000
-DEFAULT_MAX_FORWARD_US = 1700
-DEFAULT_MIN_REVERSE_US = 1300
+DEFAULT_MAX_FORWARD_US = 1850
+DEFAULT_MIN_REVERSE_US = 1480
 # Full joystick deflection; kept low because the stick jumps straight there.
-DEFAULT_JOY_MAX_FORWARD_US = 1600
-DEFAULT_JOY_MIN_REVERSE_US = 1400
+DEFAULT_JOY_MAX_FORWARD_US = 1810
+DEFAULT_JOY_MIN_REVERSE_US = 1580
 
 WINDOW = 'Drive + Record'
 BEV_WINDOW = 'BEV'
@@ -511,7 +511,7 @@ def build_parser():
     parser.add_argument('--record-fps', type=float, default=2.0,
                         help='JPEG 초당 저장 장수(기본 2)')
     parser.add_argument('--skip-when-stopped', action='store_true',
-                        help='속도가 중립(1500 us)일 때는 JPEG 저장 안 함')
+                        help=f'속도가 중립({NEUTRAL_US} us)일 때는 JPEG 저장 안 함')
     parser.add_argument('--jpeg-quality', type=int, default=95)
     parser.add_argument('--no-bev', action='store_true',
                         help='BEV 창과 BEV 저장 끄기')
@@ -555,11 +555,11 @@ def main(argv=None):
     max_forward = min(args.max_forward_us, ABSOLUTE_MAX_FORWARD_US)
     min_reverse = max(args.min_reverse_us, ABSOLUTE_MIN_REVERSE_US)
     if not min_reverse <= NEUTRAL_US <= max_forward:
-        raise SystemExit('후진 하한 <= 1500 <= 전진 상한이어야 합니다')
+        raise SystemExit(f'후진 하한 <= {NEUTRAL_US} <= 전진 상한이어야 합니다')
     joy_max_forward = min(args.joy_max_forward_us, max_forward)
     joy_min_reverse = max(args.joy_min_reverse_us, min_reverse)
     if not joy_min_reverse <= NEUTRAL_US <= joy_max_forward:
-        raise SystemExit('조이스틱 후진 하한 <= 1500 <= 조이스틱 전진 상한이어야 합니다')
+        raise SystemExit(f'조이스틱 후진 하한 <= {NEUTRAL_US} <= 조이스틱 전진 상한이어야 합니다')
     if args.steering_ch == args.throttle_ch:
         raise SystemExit('조향 채널과 ESC 채널이 같으면 안 됩니다')
     steer_min = min(STEERING_LEFT_US, STEERING_RIGHT_US)

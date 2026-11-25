@@ -33,11 +33,12 @@ ros2 launch autorace_bringup autorace.launch.py record:=true
 
 | 값 | 어디에 | 어떻게 |
 |---|---|---|
-| 엔코더 m/count | `bringup_ws/.../config/sensors.yaml` | 손으로 1m 밀고 count 변화량 N → 1/N |
-| 최대 조향각 (좌/우), 축거 | `drive.yaml`, `lane.yaml`, `parking.yaml`, `cone.yaml` | 최대 조향 회전 반경 R 재서 `atan(축거/R)` |
-| ESC 데드밴드, kff | `drive.yaml` | `open_loop: true` 로 시험 |
-| 카메라 높이·각도 / 캘리브레이션 | `lane.yaml` | `lane_ws/tools/calibrate_*.py` (체커보드) |
-| LiDAR 위치·방향 | `objavoid.yaml`, `cone.yaml` | rviz 로 `/scan` 확인 |
+| ~~엔코더~~ 0.00412 m/pulse, 방향 = ESC 명령 | `sensors.yaml` | 반영 완료 |
+| ~~최대 조향각~~ 좌 20° / 우 23°, ~~축거~~ 0.26 m | `drive.yaml`, `lane.yaml`, `parking.yaml`, `cone.yaml` | 반영 완료 |
+| ~~ESC~~ 정지 1680 / 시작 1765 / 최고 1950 | `drive.yaml`, `drive_record.py` | 반영 완료. `kff` 는 `open_loop: true` 로 시험 |
+| 카메라 렌즈 캘리브레이션 (어안) | `lane.yaml` `calib_file` | `lane_ws/tools/calibrate_*.py` (체커보드, `--fisheye`) |
+| LiDAR 방향 (`lidar_yaw`) | `objavoid.yaml`, `cone.yaml` | rviz 로 `/scan` 확인 (위치는 앞바퀴 축 위로 반영) |
+| 주차 칸 폭 | `parking.yaml` `slot_width` | 트랙에서 실측 |
 
 ## 만드는 순서
 1. drive_node + 엔코더 속도 PID (`missions:=false`, 차를 띄워 놓고 먼저 시험)

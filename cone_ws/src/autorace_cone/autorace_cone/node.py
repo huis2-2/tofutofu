@@ -23,7 +23,7 @@ class ConeNode(Node):
         d = self.declare_parameter
         self.lidar = dict(range_min=float(d('range_min', 0.05).value),
                           range_max=float(d('range_max', 2.0).value),
-                          lidar_x=float(d('lidar_x', 0.20).value),
+                          lidar_x=float(d('lidar_x', 0.26).value),
                           lidar_yaw=float(d('lidar_yaw', 3.14159265).value),
                           flip=bool(d('lidar_flip', False).value))
         self.cluster_gap = float(d('cluster_gap', 0.08).value)

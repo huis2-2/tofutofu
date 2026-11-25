@@ -5,13 +5,13 @@ lane_node:
     image_width: 640
     image_height: 480
     # 카메라 장착: 뒷바퀴 축에서 앞으로 cam_x, 바닥에서 높이 cam_h, 아래로 pitch_deg
-    cam_x: 0.25            # TODO(실측)
-    cam_h: 0.20            # TODO(실측)
+    cam_x: 0.33            # 실측: 앞바퀴 축(0.26)에서 앞으로 0.07
+    cam_h: 0.115           # 실측: 바닥 → 렌즈 아래 끝 (렌즈 중심은 조금 더 높음)
     pitch_deg: 57.0        # 실측: 수평에서 아래로 57도
-    hfov_deg: 100.0        # TODO(실측) 가로 화각. 캘리브레이션(calib_file)하면 무시됨
+    hfov_deg: 100.0        # 어안 렌즈라 핀홀 근사는 부정확 → 캘리브레이션(calib_file) 필수
     lane_width: 0.55
-    wheelbase: 0.26        # TODO(실측) 축거
-    x_min: 0.30            # 화면에 보이는 가장 가까운 지면 (뒷바퀴 기준)
+    wheelbase: 0.26        # 실측 축거
+    x_min: 0.32            # 화면 맨 아래 ≈ 카메라 바로 앞 바닥 (뒷바퀴 기준)
     x_max: 1.20            # BEV 앞쪽 끝. pitch 57도면 실제로 ~0.6~1.0m 까지만 보임 (덜 숙이면 늘어남 → 고속에 유리)
     x_ref: 0.55
     y_max: 1.5
@@ -25,7 +25,7 @@ lane_node:
 
 controller_node:
   ros__parameters:
-    wheelbase: 0.26        # TODO(실측)
+    wheelbase: 0.26        # 실측
     max_steer: 0.349       # 좌 20도 / 우 23도 중 작은 값 (양쪽 다 낼 수 있는 각)
     lookahead_base: 0.25
     lookahead_gain: 0.45   # Ld = base + gain * v

@@ -16,14 +16,17 @@
 // 퍼블리시 토픽
 //   /encoder/count     std_msgs/Int64   누적 카운트 (방향 반영, 4X)
 //   /encoder/pulses    std_msgs/Int64   전체 에지 수 (4X)
-//   /encoder/direction std_msgs/String  FORWARD / REVERSE / STOP
-//   /encoder/speed     std_msgs/Float32 차량 속도 m/s (전진 +, 저역통과 필터)
-//   /encoder/distance  std_msgs/Float64 누적 주행 거리 m (방향 반영, 후진하면 줄어듦)
+//   /encoder/direction std_msgs/String  FORWARD / REVERSE / STOP (ESC 명령 기준, 아래 참고)
+//   /encoder/speed     std_msgs/Float32 차량 속도 m/s (전진 +, 후진 -, 저역통과 필터)
+//   /encoder/distance  std_msgs/Float64 누적 주행 거리 m (전진 +, 후진 -)
 //
-// 속도 계산: meters_per_count = wheel_circumference_m / counts_per_wheel_rev
-//   counts_per_wheel_rev 는 4X 기준 카운트. 차를 손으로 정확히 1m 밀고
-//   /encoder/count 변화량 N 을 재면 meters_per_count = 1/N 으로 바로 넣어도 된다
-//   (meters_per_count > 0 이면 그 값을 우선 사용).
+// 거리·속도: Total Pulses(/encoder/pulses) 변화량 x meters_per_pulse (실측 0.00412 m)
+// 방향: 엔코더 A/B 가 아니라 ESC 명령(/drive/throttle_us)으로 판단한다.
+//   throttle_us > neutral_us(1680) → 전진, < neutral_us → 후진, == → 직전 방향 유지
+//   단, 방향 전환은 '바퀴가 멈춰 있을 때'만 반영한다. 전진 중 1680 아래 펄스는
+//   ESC 브레이크라서 그 순간 후진으로 세면 거리가 거꾸로 줄어들기 때문.
+//   /drive/throttle_us 는 drive_node 와 drive_record.py 가 발행한다.
+//   명령을 한 번도 못 받았으면 전진으로 간주.
 
 #include <fcntl.h>
 #include <linux/gpio.h>
@@ -42,6 +45,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/float32.hpp"
 #include "std_msgs/msg/float64.hpp"
+#include "std_msgs/msg/int32.hpp"
 #include "std_msgs/msg/int64.hpp"
 #include "std_msgs/msg/string.hpp"
 
@@ -103,11 +107,11 @@ public:
     line_a_ = declare_parameter<int>("line_a", 112);  // 물리 11번 PR.04
     line_b_ = declare_parameter<int>("line_b", 122);  // 물리 13번 PY.00
     const auto rate_hz = declare_parameter<double>("publish_rate", 50.0);
-    // TODO(실측): 바퀴 둘레와 바퀴 1회전당 4X 카운트
-    const auto wheel_circ = declare_parameter<double>("wheel_circumference_m", 0.2042);
-    const auto counts_per_rev = declare_parameter<double>("counts_per_wheel_rev", 1440.0);
-    const auto mpc = declare_parameter<double>("meters_per_count", 0.0);
-    meters_per_count_ = mpc > 0.0 ? mpc : wheel_circ / counts_per_rev;
+    // 실측: Total Pulses 1개당 0.00412 m
+    meters_per_pulse_ = declare_parameter<double>("meters_per_pulse", 0.00412);
+    neutral_us_ = declare_parameter<int>("neutral_us", 1680);
+    // 이 시간 동안 펄스가 없으면 '멈춤' → 이때만 ESC 명령으로 방향 전환
+    switch_stop_time_ = declare_parameter<double>("switch_stop_time", 0.1);
     // 속도 저역통과 필터 시정수 (s). 0 이면 필터 없음
     speed_tau_ = declare_parameter<double>("speed_filter_tau", 0.05);
     stop_timeout_ = declare_parameter<double>("stop_timeout", 0.5);
@@ -131,6 +135,15 @@ public:
     dir_pub_ = create_publisher<std_msgs::msg::String>("encoder/direction", 10);
     speed_pub_ = create_publisher<std_msgs::msg::Float32>("encoder/speed", 10);
     dist_pub_ = create_publisher<std_msgs::msg::Float64>("encoder/distance", 10);
+    throttle_sub_ = create_subscription<std_msgs::msg::Int32>(
+      "drive/throttle_us", 10,
+      [this](const std_msgs::msg::Int32::SharedPtr msg) {
+        if (msg->data > neutral_us_) {
+          cmd_sign_ = 1;
+        } else if (msg->data < neutral_us_) {
+          cmd_sign_ = -1;
+        }  // == neutral: 직전 명령 방향 유지
+      });
 
     last_move_ns_ = now_ns();
     last_speed_ns_ = last_move_ns_;
@@ -150,8 +163,8 @@ public:
 
     RCLCPP_INFO(
       get_logger(), "Encoder start: %s A=line %ld (pin 11), B=line %ld (pin 13), "
-      "4X quadrature, reverse=%s, %.6f m/count",
-      chip.c_str(), line_a_, line_b_, reverse_ ? "true" : "false", meters_per_count_);
+      "%.5f m/pulse, direction from /drive/throttle_us (neutral %ld us)",
+      chip.c_str(), line_a_, line_b_, meters_per_pulse_, neutral_us_);
   }
 
   ~EncoderNode() override
@@ -207,41 +220,51 @@ private:
 
   void publish()
   {
-    // 방향은 에지 하나가 아니라 퍼블리시 주기 동안의 카운트 변화로 정한다.
-    // 일정 시간 카운트 변화가 없으면 STOP
     const int64_t count_now = encoder_count_.load();
+    const int64_t pulses_now = pulse_count_.load();
     const int64_t t = now_ns();
+    const int64_t dp = pulses_now - last_pulses_;
+    last_pulses_ = pulses_now;
 
-    // 속도 (m/s): 퍼블리시 주기 동안의 카운트 변화량 / 시간, 1차 저역통과
+    // 방향: 멈춰 있을 때만 ESC 명령 방향으로 바꾼다 (주행 중 1680 아래 = 브레이크)
+    const double idle = static_cast<double>(t - last_move_ns_) * 1e-9;
+    if (idle > switch_stop_time_ && cmd_sign_ != 0) {
+      motion_sign_ = cmd_sign_;
+    }
+    if (dp > 0) {
+      last_move_ns_ = t;
+    }
+
+    const double ds = static_cast<double>(motion_sign_ * dp) * meters_per_pulse_;
+    distance_ += ds;
+
+    // 속도 (m/s): 퍼블리시 주기 동안의 거리 / 시간, 1차 저역통과
     const double dt = static_cast<double>(t - last_speed_ns_) * 1e-9;
     if (dt > 0.0) {
-      const double raw = static_cast<double>(count_now - last_speed_count_) *
-        meters_per_count_ / dt;
       const double alpha = speed_tau_ > 0.0 ? dt / (speed_tau_ + dt) : 1.0;
-      speed_ += alpha * (raw - speed_);
-      last_speed_count_ = count_now;
+      speed_ += alpha * (ds / dt - speed_);
       last_speed_ns_ = t;
     }
+    const bool stopped = static_cast<double>(t - last_move_ns_) * 1e-9 > stop_timeout_;
+    if (stopped) {
+      speed_ = 0.0;
+    }
+    direction_ = stopped ? 0 : motion_sign_;
+
     std_msgs::msg::Float32 speed;
     speed.data = static_cast<float>(speed_);
     speed_pub_->publish(speed);
+
     std_msgs::msg::Float64 dist;
-    dist.data = static_cast<double>(count_now) * meters_per_count_;
+    dist.data = distance_;
     dist_pub_->publish(dist);
-    if (count_now != last_count_) {
-      direction_ = count_now > last_count_ ? 1 : -1;
-      last_count_ = count_now;
-      last_move_ns_ = t;
-    } else if (static_cast<double>(t - last_move_ns_) * 1e-9 > stop_timeout_) {
-      direction_ = 0;
-    }
 
     std_msgs::msg::Int64 count;
     count.data = count_now;
     count_pub_->publish(count);
 
     std_msgs::msg::Int64 pulses;
-    pulses.data = pulse_count_.load();
+    pulses.data = pulses_now;
     pulses_pub_->publish(pulses);
 
     std_msgs::msg::String dir;
@@ -259,8 +282,7 @@ private:
   {
     RCLCPP_INFO(
       get_logger(), "Direction: %s | Count: %ld | Total Pulses: %ld | %.3f m/s | %.3f m",
-      direction_name(), encoder_count_.load(), pulse_count_.load(), speed_,
-      static_cast<double>(encoder_count_.load()) * meters_per_count_);
+      direction_name(), encoder_count_.load(), pulse_count_.load(), speed_, distance_);
   }
 
   int chip_fd_{-1};
@@ -270,16 +292,21 @@ private:
   int state_{0};  // 이벤트 스레드 전용: (A << 1) | B
   double stop_timeout_{0.5};
   bool reverse_{true};
-  double meters_per_count_{0.0};
+  double meters_per_pulse_{0.00412};
+  int64_t neutral_us_{1680};
+  double switch_stop_time_{0.1};
   double speed_tau_{0.05};
-  double speed_{0.0};          // 타이머 콜백 전용
-  int64_t last_speed_count_{0};
+  // 아래는 executor 스레드(타이머/구독 콜백) 전용
+  double speed_{0.0};
+  double distance_{0.0};
+  int64_t last_pulses_{0};
   int64_t last_speed_ns_{0};
+  int cmd_sign_{0};       // 마지막 ESC 명령 방향 (0 = 아직 없음)
+  int motion_sign_{1};    // 실제로 적용 중인 방향 (기본 전진)
 
   std::atomic<int64_t> encoder_count_{0};
   std::atomic<int64_t> pulse_count_{0};
   std::atomic<int> direction_{0};
-  int64_t last_count_{0};  // 타이머 콜백 전용
   int64_t last_move_ns_{0};
   std::atomic<bool> running_{false};
   std::thread event_thread_;
@@ -289,6 +316,7 @@ private:
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr dir_pub_;
   rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr speed_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr dist_pub_;
+  rclcpp::Subscription<std_msgs::msg::Int32>::SharedPtr throttle_sub_;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::TimerBase::SharedPtr print_timer_;
 };

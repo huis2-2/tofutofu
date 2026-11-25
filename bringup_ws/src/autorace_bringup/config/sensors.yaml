@@ -18,10 +18,10 @@ encoder_node:
     reverse: true
     publish_rate: 50.0
     print_period: 0.0
-    # TODO(실측) 차를 손으로 정확히 1m 밀고 /encoder/count 변화량 N → meters_per_count = 1/N
-    meters_per_count: 0.0       # > 0 이면 아래 두 값보다 우선
-    wheel_circumference_m: 0.2042
-    counts_per_wheel_rev: 1440.0
+    meters_per_pulse: 0.00412   # 실측: Total Pulses 변화량 x 0.00412 m
+    neutral_us: 1680            # 방향 = /drive/throttle_us 가 이보다 크면 전진, 작으면 후진
+    switch_stop_time: 0.1       # 바퀴가 이 시간 이상 멈춰 있을 때만 방향 전환 (주행 중 1680 아래 = 브레이크)
+    stop_timeout: 0.3
     speed_filter_tau: 0.05
 
 sllidar_node:
