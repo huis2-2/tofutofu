@@ -1,0 +1,8 @@
+mux_node:
+  ros__parameters:
+    input_timeout: 0.25    # 이 시간 안에 들어온 명령만 유효 (미션은 비활성이면 발행 안 함)
+    max_speed: 2.0
+    max_steer: 0.6
+    rate: 50.0
+    start_enabled: true    # false 면 /mux/enable true 받을 때까지 정지
+    disabled_sources: ['']  # 예: ['objavoid', 'cone'] 으로 미션 끄고 시험

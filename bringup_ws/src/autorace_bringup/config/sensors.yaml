@@ -1,0 +1,35 @@
+camera_node:
+  ros__parameters:
+    device: /dev/video0
+    width: 640
+    height: 480
+    fps: 30
+    mjpg: true
+    publish_raw: true
+    publish_compressed: false   # record:=true 이면 launch 가 true 로 바꿈
+    jpeg_quality: 80
+    exposure: 0                 # 모션 블러 심하면 수동 노출값 (카메라마다 범위 다름)
+
+encoder_node:
+  ros__parameters:
+    gpio_chip: /dev/gpiochip0
+    line_a: 112
+    line_b: 122
+    reverse: true
+    publish_rate: 50.0
+    print_period: 0.0
+    # TODO(실측) 차를 손으로 정확히 1m 밀고 /encoder/count 변화량 N → meters_per_count = 1/N
+    meters_per_count: 0.0       # > 0 이면 아래 두 값보다 우선
+    wheel_circumference_m: 0.2042
+    counts_per_wheel_rev: 1440.0
+    speed_filter_tau: 0.05
+
+sllidar_node:
+  ros__parameters:
+    channel_type: serial
+    serial_port: /dev/ttyUSB0
+    serial_baudrate: 115200     # A1/A2M8: 115200, A2M12/A3/S1: 256000, C1: 460800
+    frame_id: laser
+    inverted: false
+    angle_compensate: true
+    scan_mode: ''

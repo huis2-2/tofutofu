@@ -1,0 +1,22 @@
+cone_node:
+  ros__parameters:
+    lidar_x: 0.20          # objavoid.yaml 과 같게
+    lidar_yaw: 3.14159265
+    lidar_flip: false
+    range_min: 0.05
+    range_max: 2.0
+    cluster_gap: 0.08      # 이보다 떨어진 점은 다른 물체
+    max_cone_size: 0.18    # 이보다 큰 군집(LIMO, 벽)은 콘 아님
+    wheelbase: 0.26
+    roi_x_min: 0.05
+    roi_x_max: 1.6
+    roi_y: 1.0
+    lookahead: 0.8
+    half_gap: 0.30         # 한쪽 콘만 보일 때 콘에서 띄우는 거리
+    min_cones: 2
+    exit_distance: 0.6
+    speed: 0.5
+    max_steer: 0.45
+    steer_filter: 0.5
+    require_yolo: true
+    arm_distance: 3.0      # YOLO cone 확인 후 이 거리 안에서 LiDAR 콘이 보이면 시작

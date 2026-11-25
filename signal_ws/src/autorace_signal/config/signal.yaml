@@ -1,0 +1,16 @@
+signal_node:
+  ros__parameters:
+    stop_before: 0.05     # 정지선 앞 가장자리에서 이만큼 앞에 앞바퀴 정지 (±5cm 판정, 실측 튜닝)
+    use_stop_line: true   # horizontal_line(정지선)이 횡단보도보다 가까우면 정지선 기준
+    decel: 1.5
+    creep_speed: 0.12
+    creep_dist: 0.10
+    tolerance: 0.01
+    max_measure: 1.2
+    approach_speed: 0.35  # 빨간불 봤는데 정지선이 아직 안 보일 때
+    blind_stop_sec: 4.0   # 그래도 이 시간 동안 정지선을 못 보면 그 자리 정지
+    signal_timeout: 1.0
+    green_confirm: 2      # 초록 연속 N회 확인 후 출발 (방해 모니터 오검출 대비)
+    pass_distance: 1.0
+    max_count: 1
+    lane_timeout: 0.3

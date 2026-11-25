@@ -1,0 +1,11 @@
+slow_node:
+  ros__parameters:
+    ratio: 0.45            # lane 속도의 45% (40~50%)
+    max_speed: 0.45        # 서행 상한 m/s
+    min_speed: 0.15        # 방지턱에서 멈추지 않도록
+    hold_distance: 1.2     # 표지/마름모 후 서행 거리 (방지턱 통과까지)
+    zigzag_hold_distance: 0.4
+    diamond_trigger_dist: 0.8
+    use_diamond: true
+    use_zigzag: true
+    lane_timeout: 0.3

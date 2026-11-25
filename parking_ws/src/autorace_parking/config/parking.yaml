@@ -1,0 +1,15 @@
+parking_node:
+  ros__parameters:
+    wheelbase: 0.26        # TODO(실측)
+    slot_width: 0.50       # TODO(실측) 주차 칸 폭 (차 진행 방향 길이)
+    slot_index: 1.5        # 1.5 = 3칸 중 가운데 칸 중심
+    turn_radius: 0.55      # TODO(실측) 최대 조향 회전 반경 (뒷바퀴 축 중심 기준)
+    turn_offset: 0.0       # 회전 시작 위치 미세 조정 (+ 늦게)
+    turn_scale: 1.0        # 90도가 안 맞으면 조정 (원호 길이 배율)
+    enter_distance: 0.35   # 회전 후 칸 안으로 직진 거리
+    approach_speed: 0.3
+    maneuver_speed: 0.25
+    max_steer: 0.45
+    side: -1               # -1 오른쪽 칸
+    arm_timeout_dist: 6.0  # P 표지 후 이 거리 안에 주차선을 못 보면 취소
+    lane_timeout: 0.3

@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>autorace_bringup</name>
+  <version>0.1.0</version>
+  <description>Launch everything (sensors, perception, missions, mux, drive) + rosbag recording</description>
+  <maintainer email="tofu@todo.todo">tofu</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sllidar_ros2</exec_depend>
+  <exec_depend>camera_node</exec_depend>
+  <exec_depend>encoder_node</exec_depend>
+  <exec_depend>autorace_yolo</exec_depend>
+  <exec_depend>autorace_lane</exec_depend>
+  <exec_depend>autorace_crosswalk</exec_depend>
+  <exec_depend>autorace_signal</exec_depend>
+  <exec_depend>autorace_slow</exec_depend>
+  <exec_depend>autorace_objavoid</exec_depend>
+  <exec_depend>autorace_cone</exec_depend>
+  <exec_depend>autorace_parking</exec_depend>
+  <exec_depend>autorace_mux</exec_depend>
+  <exec_depend>autorace_drive</exec_depend>
+  <exec_depend>ros2bag</exec_depend>
+  <exec_depend>rosbag2_storage_mcap</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

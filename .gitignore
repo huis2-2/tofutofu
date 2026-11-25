@@ -7,3 +7,7 @@ __pycache__/
 *.mp4
 datasets/**/rosbag/
 datasets/**/rosbag.log
+*.engine
+*.onnx
+datasets/bags/
+calib_imgs/

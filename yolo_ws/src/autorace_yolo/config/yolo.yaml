@@ -1,0 +1,16 @@
+yolo_node:
+  ros__parameters:
+    # Jetson 에서 변환한 TensorRT 엔진 (README 참고). .pt 도 동작하지만 느림
+    model_path: /home/tofu/tofutofu/yolo_ws/model/best.engine
+    imgsz: 640
+    half: true
+    device: '0'
+    lane_conf: 0.25      # 차선 클래스 최소 confidence
+    sign_conf: 0.50      # 표지판/신호등 최소 confidence
+    mask_width: 320      # /yolo/lane_mask 해상도 (lane_node 가 원본 640x480 으로 환산)
+    mask_height: 240
+    confirm_frames: 2    # 연속 N 프레임 검출돼야 Bool true
+    min_box_area: 0.0005 # 정규화 면적. 너무 먼 표지 무시
+    min_light_area: 0.0003
+    publish_debug: false # true 면 /yolo/debug/compressed (지연 조금 늘어남)
+    debug_every: 3

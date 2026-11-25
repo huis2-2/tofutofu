@@ -1,0 +1,44 @@
+lane_node:
+  ros__parameters:
+    # 캘리브레이션 파일 (tools/calibrate_camera.py → calibrate_ground.py 결과). 비우면 아래 핀홀 근사
+    calib_file: ''
+    image_width: 640
+    image_height: 480
+    # TODO(실측) 카메라 장착: 뒷바퀴 축에서 앞으로 cam_x, 바닥에서 높이 cam_h, 아래로 pitch_deg
+    cam_x: 0.25
+    cam_h: 0.20
+    pitch_deg: 25.0
+    hfov_deg: 100.0
+    lane_width: 0.55
+    wheelbase: 0.26        # TODO(실측) 축거
+    x_min: 0.30            # 화면에 보이는 가장 가까운 지면 (뒷바퀴 기준)
+    x_max: 1.60            # BEV 앞쪽 끝. 카메라를 올리면 늘릴 수 있음 → 고속에 유리
+    x_ref: 0.55
+    y_max: 1.5
+    bin_size: 0.08
+    margin: 0.12
+    first_margin: 0.20
+    start_window: 0.35
+    stride: 2              # 마스크 픽셀 샘플링 간격
+    fork_hold_distance: 3.0  # A/B 표지 후 이 거리(m) 동안 한쪽 경계만 추종
+    publish_debug: false   # /lane/debug BEV 그림
+
+controller_node:
+  ros__parameters:
+    wheelbase: 0.26        # TODO(실측)
+    max_steer: 0.45        # TODO(실측) 최대 조향각 rad (drive_node 와 같게)
+    lookahead_base: 0.25
+    lookahead_gain: 0.45   # Ld = base + gain * v
+    lookahead_min: 0.35
+    lookahead_max: 1.20
+    steer_filter: 0.6
+    v_max: 1.2             # 직선 최고 속도 (튜닝하면서 올리기)
+    v_min: 0.35
+    v_boost: 1.6           # no_speed_limit 표지 후 boost_distance 동안
+    boost_distance: 3.0
+    a_lat_max: 1.6         # 커브 횡가속도 한계 → R0.6 커브에서 약 0.98 m/s
+    accel: 1.5
+    heading_speed_gain: 0.6
+    lost_hold_sec: 0.4
+    lost_speed: 0.3
+    input_timeout: 0.3

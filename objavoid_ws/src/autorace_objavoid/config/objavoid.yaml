@@ -1,0 +1,23 @@
+objavoid_node:
+  ros__parameters:
+    # TODO(실측) LiDAR 장착: 뒷바퀴 축에서 앞으로 lidar_x, 0도 방향이 차 앞에서 돌아간 각 lidar_yaw
+    # RPLIDAR 는 보통 케이블 쪽이 뒤라서 yaw=pi. rviz 에서 /scan 보고 앞 물체가 +x 에 오게 맞추기
+    lidar_x: 0.20
+    lidar_yaw: 3.14159265
+    lidar_flip: false
+    range_min: 0.05
+    range_max: 3.0
+    lane_width: 0.55
+    front: 0.26            # 뒷바퀴 → 차 앞 범퍼 (대략 축거)
+    check_dist: 0.9        # 앞 범퍼에서 이 거리 안이 막히면 차선 변경
+    corridor_half: 0.17    # 차 폭/2 + 여유
+    min_points: 4
+    change_cooldown: 0.6   # 차선 변경 후 이 거리(m) 동안 추가 변경 X
+    exit_distance: 0.8     # 장애물이 이 거리 동안 안 보이면 종료
+    avoid_speed: 0.5
+    require_dashed: true   # 점선 쪽으로만 변경 (노란 실선 넘으면 -1점)
+    dashed_threshold: 0.3
+    prefer: 1              # 둘 다 비면 1 = 왼쪽, -1 = 오른쪽
+    require_yolo: true     # YOLO fixed_obstacle 확인 후에만 시작
+    active_timeout_dist: 2.5
+    lane_timeout: 0.3
