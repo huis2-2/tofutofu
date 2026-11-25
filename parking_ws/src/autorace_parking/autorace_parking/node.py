@@ -26,13 +26,13 @@ class ParkingNode(Node):
             wheelbase=float(d('wheelbase', 0.26).value),
             slot_width=float(d('slot_width', 0.50).value),
             slot_index=float(d('slot_index', 1.5).value),
-            turn_radius=float(d('turn_radius', 0.55).value),
+            turn_radius=float(d('turn_radius', 0.613).value),
             turn_offset=float(d('turn_offset', 0.0).value),
             turn_scale=float(d('turn_scale', 1.0).value),
             enter_distance=float(d('enter_distance', 0.35).value),
             approach_speed=float(d('approach_speed', 0.3).value),
             maneuver_speed=float(d('maneuver_speed', 0.25).value),
-            max_steer=float(d('max_steer', 0.45).value),
+            max_steer=float(d('max_steer', 0.401).value),
             side=int(d('side', -1).value),
             arm_timeout_dist=float(d('arm_timeout_dist', 6.0).value))
         self.lane_timeout = float(d('lane_timeout', 0.3).value)

@@ -48,7 +48,7 @@ def clusters(pts, cluster_gap=0.08, max_size=0.18, min_points=2):
 class ConeCourse:
 
     def __init__(self, wheelbase=0.26, roi_x=(0.05, 1.6), roi_y=1.0, lookahead=0.8,
-                 half_gap=0.30, min_cones=2, exit_distance=0.6, speed=0.5, max_steer=0.45,
+                 half_gap=0.30, min_cones=2, exit_distance=0.6, speed=0.5, max_steer=0.349,
                  steer_filter=0.5, arm_distance=3.0, require_yolo=True):
         self.L = wheelbase
         self.roi_x = roi_x

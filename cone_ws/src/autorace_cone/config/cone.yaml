@@ -16,7 +16,7 @@ cone_node:
     min_cones: 2
     exit_distance: 0.6
     speed: 0.5
-    max_steer: 0.45
+    max_steer: 0.349       # 좌 20도 / 우 23도 중 작은 값
     steer_filter: 0.5
     require_yolo: true
     arm_distance: 3.0      # YOLO cone 확인 후 이 거리 안에서 LiDAR 콘이 보이면 시작

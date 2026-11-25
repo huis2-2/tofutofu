@@ -15,19 +15,19 @@ drive_node:
     center_us: 1660.0
     left_us: 2000.0
     right_us: 1400.0
-    max_left_rad: 0.45     # TODO(실측) left_us 일 때 앞바퀴 각도
-    max_right_rad: 0.45    # TODO(실측) right_us 일 때 앞바퀴 각도
+    max_left_rad: 0.349    # 실측 좌회전 최대 20도 (left_us 2000)
+    max_right_rad: 0.401   # 실측 우회전 최대 23도 (right_us 1400)
     trim_us: 0.0           # 직진이 한쪽으로 쏠리면 조정
     # 속도 PID (엔코더 /encoder/speed 필요)
-    neutral_us: 1500.0
-    deadband_us: 40.0      # TODO(실측) 바퀴가 막 돌기 시작하는 펄스 - 1500
+    neutral_us: 1680.0     # 실측 정지
+    deadband_us: 85.0      # 실측 주행 시작 1765 - 정지 1680
     kff: 120.0             # TODO(실측) µs per m/s
     kp: 80.0
     ki: 120.0
     kd: 0.0
     i_limit: 120.0
-    max_forward_us: 1750.0 # 안전 상한 (속도 올릴 때 같이 올리기, 절대 2000 이하)
-    brake_us: 1350.0       # 정지 명령 시 브레이크 펄스 (ESC 가 후진 들어가면 1500 으로)
+    max_forward_us: 1950.0 # 실측 최고속 (처음 시험은 1850 정도로 낮춰서)
+    brake_us: 1580.0       # TODO(확인) 정지 1680 보다 낮은 값 = 브레이크. 후진이 걸리면 1680 으로
     brake_speed: 0.10
     accel: 3.0
     stop_speed: 0.02

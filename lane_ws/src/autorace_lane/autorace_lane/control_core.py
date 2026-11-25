@@ -13,7 +13,7 @@ class ControlParams:
     lookahead_max: float = 1.20
     lookahead_base: float = 0.25   # Ld = base + gain * v
     lookahead_gain: float = 0.45
-    max_steer: float = 0.45        # rad
+    max_steer: float = 0.349       # rad (좌 20도 / 우 23도 중 작은 값)
     steer_filter: float = 0.6      # 0~1, 1 = 필터 없음
     v_max: float = 1.2             # m/s 직선 최고 속도
     v_min: float = 0.35            # 커브 최저 속도

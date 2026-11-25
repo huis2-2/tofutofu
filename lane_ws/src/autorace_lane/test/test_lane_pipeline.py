@@ -113,6 +113,17 @@ def test_crosswalk_distance():
     assert abs(res.crosswalk - (1.0 - 0.26)) < 0.04, res.crosswalk
 
 
+def test_steep_camera_57deg():
+    """실제 장착 각도(57도 숙임): 보이는 범위가 짧아도 경로가 보이는 범위 안에서 나와야 함."""
+    m = GroundModel(640, 480, '', cam_x=0.25, cam_h=0.20, pitch_deg=57, hfov_deg=100)
+    est = LaneEstimator(LaneParams())
+    mask = render(m, [(YELLOW, lambda x: 0.03 + 0.275 + 0 * x), (YELLOW, lambda x: 0.03 - 0.275 + 0 * x)])
+    res = run(mask, m, est)
+    assert res.valid
+    assert abs(res.lateral_error - 0.03) < 0.02, res.lateral_error
+    assert res.path[-1, 0] < 1.1  # 보이는 범위(~1.0m) 밖으로 외삽하지 않음
+
+
 if __name__ == '__main__':
     for k, f in list(globals().items()):
         if k.startswith('test_'):

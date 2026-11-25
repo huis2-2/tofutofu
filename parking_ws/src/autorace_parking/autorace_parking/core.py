@@ -19,9 +19,9 @@ import math
 class Parking:
     IDLE, ARMED, APPROACH, TURN, ENTER, PARKED = 'IDLE', 'ARMED', 'APPROACH', 'TURN', 'ENTER', 'PARKED'
 
-    def __init__(self, wheelbase=0.26, slot_width=0.50, slot_index=1.5, turn_radius=0.55,
+    def __init__(self, wheelbase=0.26, slot_width=0.50, slot_index=1.5, turn_radius=0.613,
                  turn_offset=0.0, turn_scale=1.0, enter_distance=0.35, approach_speed=0.3,
-                 maneuver_speed=0.25, max_steer=0.45, side=-1, min_measure=0.05, max_measure=1.2,
+                 maneuver_speed=0.25, max_steer=0.401, side=-1, min_measure=0.05, max_measure=1.2,
                  arm_timeout_dist=6.0):
         self.L = wheelbase
         self.slot_width = slot_width

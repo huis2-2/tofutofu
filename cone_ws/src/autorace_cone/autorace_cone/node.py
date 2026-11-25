@@ -34,7 +34,7 @@ class ConeNode(Node):
             roi_y=float(d('roi_y', 1.0).value), lookahead=float(d('lookahead', 0.8).value),
             half_gap=float(d('half_gap', 0.30).value), min_cones=int(d('min_cones', 2).value),
             exit_distance=float(d('exit_distance', 0.6).value), speed=float(d('speed', 0.5).value),
-            max_steer=float(d('max_steer', 0.45).value),
+            max_steer=float(d('max_steer', 0.349).value),
             steer_filter=float(d('steer_filter', 0.5).value),
             arm_distance=float(d('arm_distance', 3.0).value),
             require_yolo=bool(d('require_yolo', True).value))

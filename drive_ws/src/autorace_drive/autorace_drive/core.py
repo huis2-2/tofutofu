@@ -8,8 +8,8 @@ class SteerParams:
     center_us: float = 1660.0
     left_us: float = 2000.0      # 최대 왼쪽 펄스
     right_us: float = 1400.0     # 최대 오른쪽 펄스
-    max_left_rad: float = 0.45   # left_us 일 때 앞바퀴 각도 (실측)
-    max_right_rad: float = 0.45
+    max_left_rad: float = 0.349  # left_us 일 때 앞바퀴 각도 (실측 20도)
+    max_right_rad: float = 0.401  # 실측 23도
     trim_us: float = 0.0
 
 
@@ -33,15 +33,15 @@ def steer_ratio(us, p: SteerParams):
 
 @dataclass
 class SpeedParams:
-    neutral_us: float = 1500.0
-    deadband_us: float = 40.0    # 이만큼은 넣어야 바퀴가 돌기 시작 (실측)
+    neutral_us: float = 1680.0   # 실측 정지
+    deadband_us: float = 85.0    # 실측: 1765 부터 바퀴가 돎
     kff: float = 120.0           # µs per m/s (피드포워드, 실측)
     kp: float = 80.0
     ki: float = 120.0
     kd: float = 0.0
     i_limit: float = 120.0       # 적분 항 최대 µs
-    max_forward_us: float = 1750.0
-    brake_us: float = 1350.0     # 정지 명령 + 아직 움직이면 브레이크 (ESC 역방향 = 브레이크)
+    max_forward_us: float = 1950.0
+    brake_us: float = 1580.0     # 정지 명령 + 아직 움직이면 브레이크 (ESC 역방향 = 브레이크)
     brake_speed: float = 0.10    # 이 속도 이상일 때만 브레이크
     accel: float = 3.0           # 목표 속도 증가율 제한 m/s^2
     stop_speed: float = 0.02     # 목표가 이보다 작으면 정지

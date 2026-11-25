@@ -42,7 +42,7 @@ class LaneNode(Node):
         self.image_height = int(d('image_height', 480).value)
         self.cam_x = float(d('cam_x', 0.25).value)
         self.cam_h = float(d('cam_h', 0.20).value)
-        self.pitch_deg = float(d('pitch_deg', 25.0).value)
+        self.pitch_deg = float(d('pitch_deg', 57.0).value)
         self.hfov_deg = float(d('hfov_deg', 100.0).value)
         self.y_max = float(d('y_max', 1.5).value)
         self.stride = int(d('stride', 2).value)

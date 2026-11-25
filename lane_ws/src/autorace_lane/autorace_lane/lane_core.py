@@ -31,7 +31,7 @@ TARGET_LEN = 15
 class LaneParams:
     lane_width: float = 0.55
     x_min: float = 0.30          # 카메라에 보이는 가장 가까운 지면 (뒷바퀴 기준)
-    x_max: float = 1.60
+    x_max: float = 1.20
     bin_size: float = 0.08
     margin: float = 0.12         # 예상 위치 ± margin 안의 점만 사용
     first_margin: float = 0.20   # 이전 추정이 없을 때 첫 bin 탐색 폭
@@ -52,6 +52,7 @@ class LaneParams:
 class Side:
     poly: np.ndarray = None      # y(x) 계수 (np.polyfit 순서)
     n_bins: int = 0
+    x_far: float = 0.0           # 실제로 점을 찾은 가장 먼 x
     dashed_ratio: float = 0.0
     zigzag: bool = False
 
@@ -196,6 +197,7 @@ class LaneEstimator:
             poly = np.concatenate([[0.0], poly])
         side.poly = poly
         side.n_bins = len(xs)
+        side.x_far = xs[-1]
         side.dashed_ratio = n_dashed / max(1, n_total)
         return side
 
@@ -235,7 +237,10 @@ class LaneEstimator:
         res.zigzag = int(left.zigzag) + int(right.zigzag)
         res.width = self.width
 
-        xs = np.linspace(p.x_min, p.x_max, p.path_points)
+        # 경로는 실제로 선이 보인 범위까지만 (보이지 않는 먼 곳으로 다항식 외삽 금지)
+        x_far = max([s.x_far for s in (left, right) if s.poly is not None], default=p.x_max)
+        x_end = float(np.clip(x_far + p.bin_size, p.x_min + 0.3, p.x_max))
+        xs = np.linspace(p.x_min, x_end, p.path_points)
         half = self.width / 2.0
         if left.poly is not None and right.poly is not None:
             cy = 0.5 * (_polyval(left.poly, xs) + _polyval(right.poly, xs))
