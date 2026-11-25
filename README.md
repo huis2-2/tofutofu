@@ -36,7 +36,7 @@ ros2 launch autorace_bringup autorace.launch.py record:=true
 | ~~엔코더~~ 0.00412 m/pulse, 방향 = ESC 명령 | `sensors.yaml` | 반영 완료 |
 | ~~최대 조향각~~ 좌 20° / 우 23°, ~~축거~~ 0.26 m | `drive.yaml`, `lane.yaml`, `parking.yaml`, `cone.yaml` | 반영 완료 |
 | ~~ESC~~ 정지 1680 / 시작 1765 / 최고 1950 | `drive.yaml`, `drive_record.py` | 반영 완료. `kff` 는 `open_loop: true` 로 시험 |
-| 카메라 렌즈 캘리브레이션 (어안) | `lane.yaml` `calib_file` | `lane_ws/tools/calibrate_*.py` (체커보드, `--fisheye`) |
+| 카메라 렌즈·바닥 캘리브레이션 (어안) | `lane.yaml` `calib_file` | 아이폰 16 화면으로: [lane_ws/README.md](lane_ws/README.md) 캘리브레이션 절 |
 | LiDAR 방향 (`lidar_yaw`) | `objavoid.yaml`, `cone.yaml` | rviz 로 `/scan` 확인 (위치는 앞바퀴 축 위로 반영) |
 | 주차 칸 폭 | `parking.yaml` `slot_width` | 트랙에서 실측 |
 
