@@ -26,6 +26,7 @@ SIGN_NAMES = ['slow', 'go_a', 'go_b', 'parking', 'red_light', 'yellow_light',
 ALIASES = {
     'crosswalk': 'cross_walk',
     'slow_sign': 'slow',
+    'slow_down': 'slow',   # Roboflow tofu_v3 에 slow 와 따로 있는 클래스 (방지턱 표지) → 둘 다 서행
     'a': 'go_a',
     'b': 'go_b',
     'parking_sign': 'parking',

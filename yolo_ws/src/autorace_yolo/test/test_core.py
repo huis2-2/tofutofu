@@ -8,6 +8,8 @@ def test_normalize():
     assert normalize('Dashed_line') == 'dashed_line'
     assert normalize('Go_A') == 'go_a'
     assert normalize('cross-walk') == 'cross_walk'
+    assert normalize('slow_down') == 'slow'
+    assert normalize('Parking') == 'parking'
 
 
 def test_mask_priority():
