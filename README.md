@@ -1,5 +1,7 @@
 # tofutofu — Autorace 2026 RC카 자율주행
 
+> **처음이면 [docs/GUIDE.md](docs/GUIDE.md) 부터** — 젯슨 준비, 매일 하는 순서(pull → 주행 → 업로드 → 커밋 → 태그), 지금 할 일 순서가 한 장에 있습니다.
+
 Jetson Orin Nano · ROS 2 Jazzy · RC카 (서보 + ESC + 엔코더) · USB 카메라 · RPLIDAR.
 목표: **최대한 빠르게** 1바퀴 + 8개 미션. 구조는 [2026-AutoRace](https://github.com/Minjea31/2026-AutoRace)처럼
 기능별 워크스페이스로 나누고 mux 가 우선순위로 최종 명령을 고릅니다. 토픽·우선순위 명세: [docs/architecture.md](docs/architecture.md)
