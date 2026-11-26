@@ -19,6 +19,7 @@
   yolo export model=best.pt format=engine half=True imgsz=640 device=0
 """
 
+import os
 import time
 
 import cv2
@@ -32,6 +33,19 @@ from std_msgs.msg import Bool, Float32MultiArray, Int8
 
 from .classes import LANE_IDS, SIGN_NAMES, normalize
 from .core import Confirmer, best_boxes, draw_lane_mask
+
+
+def resolve_model(path, logger):
+    """model_path 가 없으면 같은 폴더에서 best.engine → best.onnx → best.pt 순서로 찾는다."""
+    if path and os.path.isfile(path):
+        return path
+    folder = os.path.dirname(path) if path else ''
+    for name in ('best.engine', 'best.onnx', 'best.pt'):
+        cand = os.path.join(folder, name)
+        if folder and os.path.isfile(cand):
+            logger.warning(f'{path} 없음 → {cand} 사용 (.engine 이 가장 빠름, yolo_ws/README.md 참고)')
+            return cand
+    raise RuntimeError(f'모델 파일이 없습니다: {path} (같은 폴더에 best.engine / best.onnx / best.pt 도 없음)')
 
 
 def _fill(mask, pts, value):
@@ -56,8 +70,7 @@ class YoloNode(Node):
         self.min_area_light = float(p('min_light_area', 0.0003).value)
         self.publish_debug = bool(p('publish_debug', False).value)
         self.debug_every = int(p('debug_every', 3).value)
-        if not self.model_path:
-            raise RuntimeError('model_path 파라미터에 best.engine (또는 best.pt) 경로를 넣으세요.')
+        self.model_path = resolve_model(self.model_path, self.get_logger())
 
         from ultralytics import YOLO  # 무거워서 여기서 import
         self.model = YOLO(self.model_path, task='segment')

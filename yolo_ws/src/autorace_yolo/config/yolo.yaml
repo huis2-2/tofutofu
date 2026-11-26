@@ -1,7 +1,7 @@
 yolo_node:
   ros__parameters:
     # Jetson 에서 변환한 TensorRT 엔진 (README 참고). .pt 도 동작하지만 느림
-    model_path: /home/tofu/tofutofu/yolo_ws/model/best.engine
+    model_path: /home/tofu/tofutofu/yolo_ws/model/best.engine   # 없으면 같은 폴더의 best.onnx → best.pt 순서로 사용
     imgsz: 640
     half: true
     device: '0'
