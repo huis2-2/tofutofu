@@ -26,7 +26,8 @@ sudo apt install ros-jazzy-ackermann-msgs ros-jazzy-rosbag2-storage-mcap python3
 pip install ultralytics Jetson.GPIO
 cd ~/tofutofu && ./build_all.sh
 source source_all_ws.bash
-ros2 launch autorace_bringup autorace.launch.py record:=true
+ros2 launch autorace_bringup autorace.launch.py     # 주행 + rosbag 기록
+./tools/upload_bag.sh --all                         # 주행 후: 검사 + GitHub 업로드
 ```
 
 ## 처음 할 일 (실측값 → 설정 파일의 `TODO(실측)`)
@@ -51,4 +52,6 @@ ros2 launch autorace_bringup autorace.launch.py record:=true
 - `bag_to_images.py`, `bag_to_video.py`: rosbag → 라벨링 사진 / mp4
 - [datasets/](datasets/): 2026-11-23 트랙 데이터
 - [docs/training_guide.md](docs/training_guide.md): YOLO 재학습 가이드라인
+- [docs/git_workflow.md](docs/git_workflow.md): **GitHub 사용 규칙** (main 하나, 잘 달리면 태그, rosbag 업로드)
+- 주행은 기본으로 rosbag 기록 → 주행 후 `./tools/upload_bag.sh --all` (품질 검사 + Release 업로드 + [목록](datasets/bags_index/))
 - `record:=true` 로 자율주행하면 `datasets/bags/` 에 이미지 + 명령 + PWM + 엔코더가 쌓임 (모방학습용)

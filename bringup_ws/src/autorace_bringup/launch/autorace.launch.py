@@ -1,7 +1,8 @@
 """전체 실행: 센서 → YOLO → 차선/제어 → 미션 → mux → drive (+ rosbag 기록).
 
-  ros2 launch autorace_bringup autorace.launch.py                 # 대회 주행
-  ros2 launch autorace_bringup autorace.launch.py record:=true    # 주행하면서 rosbag (모방학습용)
+  ros2 launch autorace_bringup autorace.launch.py                 # 주행 + rosbag 기록 (기본, 모방학습용)
+  ros2 launch autorace_bringup autorace.launch.py record:=false   # 기록 없이
+  주행 후: ./tools/upload_bag.sh --all  (검사 → GitHub Release 업로드 → 목록 커밋)
   ros2 launch autorace_bringup autorace.launch.py drive:=false    # 바퀴 출력 없이 인식만 확인
   ros2 launch autorace_bringup autorace.launch.py missions:=false # 차선 주행만 (속도 튜닝)
 
@@ -53,7 +54,7 @@ def generate_launch_description():
 
     stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     return LaunchDescription([
-        DeclareLaunchArgument('record', default_value='false'),
+        DeclareLaunchArgument('record', default_value='true'),
         DeclareLaunchArgument('drive', default_value='true'),
         DeclareLaunchArgument('missions', default_value='true'),
         DeclareLaunchArgument('lidar', default_value='true'),
