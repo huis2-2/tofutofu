@@ -27,6 +27,10 @@
 //   ESC 브레이크라서 그 순간 후진으로 세면 거리가 거꾸로 줄어들기 때문.
 //   /drive/throttle_us 는 drive_node 와 drive_record.py 가 발행한다.
 //   명령을 한 번도 못 받았으면 전진으로 간주.
+//
+//   /encoder/frequency std_msgs/Float64 A 채널 주파수 [Hz], 방향 부호 포함
+//                                       (커널 이벤트 타임스탬프로 A 상승 에지 간격을 측정)
+//   /encoder/period_ms std_msgs/Float64 A 채널 한 주기 [ms] (정지 시 0)
 
 #include <fcntl.h>
 #include <linux/gpio.h>
@@ -34,6 +38,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cerrno>
 #include <chrono>
@@ -118,6 +123,9 @@ public:
     const auto print_period = declare_parameter<double>("print_period", 0.5);
     // 실차에서 전진 시 카운트가 줄어 기본값을 true 로 둔다
     reverse_ = declare_parameter<bool>("reverse", true);
+    // Hz/ms 를 최근 몇 주기의 평균으로 낼지 (1 이면 한 주기마다 그대로)
+    freq_window_ = std::clamp<int64_t>(
+      declare_parameter<int>("freq_window", 8), 1, kMaxRiseWindow - 1);
 
     chip_fd_ = open(chip.c_str(), O_RDONLY | O_CLOEXEC);
     if (chip_fd_ < 0) {
@@ -144,6 +152,8 @@ public:
           cmd_sign_ = -1;
         }  // == neutral: 직전 명령 방향 유지
       });
+    freq_pub_ = create_publisher<std_msgs::msg::Float64>("encoder/frequency", 10);
+    period_pub_ = create_publisher<std_msgs::msg::Float64>("encoder/period_ms", 10);
 
     last_move_ns_ = now_ns();
     last_speed_ns_ = last_move_ns_;
@@ -210,10 +220,38 @@ private:
         const int delta = kQuadratureTable[state_ * 4 + next];
         state_ = next;
         if (delta == 0) {
+          // 이미 HIGH 인데 또 상승 에지처럼, 상태가 안 바뀌는 이벤트 = 그 라인의 에지를 놓쳤다
+          missed_edges_++;
           continue;
         }
         encoder_count_ += sign * delta;
         pulse_count_++;
+        last_edge_ns_ = static_cast<int64_t>(events[i].timestamp_ns);
+
+        // A 상승 에지 사이 간격 = A 한 주기. 타임스탬프는 커널이 에지 발생 시점에 찍은 값이라
+        // 이 스레드가 늦게 처리해도 정확하다. 최근 freq_window 주기의 평균으로 계산한다.
+        // 방향이 바뀌었거나 오래 멈췄다가 다시 움직인 경우에는 간격이 의미 없으므로
+        // 기준점부터 새로 모은다.
+        if (bit == 0b10 && events[i].id == GPIO_V2_LINE_EVENT_RISING_EDGE) {
+          const int64_t ts = static_cast<int64_t>(events[i].timestamp_ns);
+          const int step = sign * delta;
+          const int64_t period = ts - last_a_rise_ns_;
+          if (last_a_rise_ns_ == 0 || step != last_a_step_ || period <= 0 ||
+            static_cast<double>(period) * 1e-9 > stop_timeout_)
+          {
+            rise_count_ = 0;
+          }
+          rise_ts_[rise_count_ % kMaxRiseWindow] = ts;
+          rise_count_++;
+          const int64_t n = std::min<int64_t>(rise_count_, freq_window_ + 1);
+          if (n >= 2) {
+            const int64_t span = ts - rise_ts_[(rise_count_ - n) % kMaxRiseWindow];
+            frequency_hz_ = step * (n - 1) * 1e9 / static_cast<double>(span);
+            period_ms_ = static_cast<double>(span) * 1e-6 / static_cast<double>(n - 1);
+          }
+          last_a_rise_ns_ = ts;
+          last_a_step_ = step;
+        }
       }
     }
   }
@@ -259,6 +297,12 @@ private:
     dist.data = distance_;
     dist_pub_->publish(dist);
 
+    // 이벤트 타임스탬프와 steady_clock 은 둘 다 CLOCK_MONOTONIC 이다
+    if (static_cast<double>(t - last_edge_ns_.load()) * 1e-9 > stop_timeout_) {
+      frequency_hz_ = 0.0;
+      period_ms_ = 0.0;
+    }
+
     std_msgs::msg::Int64 count;
     count.data = count_now;
     count_pub_->publish(count);
@@ -270,6 +314,14 @@ private:
     std_msgs::msg::String dir;
     dir.data = direction_name();
     dir_pub_->publish(dir);
+
+    std_msgs::msg::Float64 freq;
+    freq.data = frequency_hz_.load();
+    freq_pub_->publish(freq);
+
+    std_msgs::msg::Float64 period;
+    period.data = period_ms_.load();
+    period_pub_->publish(period);
   }
 
   const char * direction_name() const
@@ -281,8 +333,10 @@ private:
   void print_status()
   {
     RCLCPP_INFO(
-      get_logger(), "Direction: %s | Count: %ld | Total Pulses: %ld | %.3f m/s | %.3f m",
-      direction_name(), encoder_count_.load(), pulse_count_.load(), speed_, distance_);
+      get_logger(), "Direction: %s | Count: %ld | Total Pulses: %ld | %.3f m/s | %.3f m | "
+      "Freq: %.1f Hz | Period: %.3f ms | Missed: %ld",
+      direction_name(), encoder_count_.load(), pulse_count_.load(), speed_, distance_,
+      frequency_hz_.load(), period_ms_.load(), missed_edges_.load());
   }
 
   int chip_fd_{-1};
@@ -290,6 +344,12 @@ private:
   int64_t line_a_{112};
   int64_t line_b_{122};
   int state_{0};  // 이벤트 스레드 전용: (A << 1) | B
+  int64_t last_a_rise_ns_{0};  // 이벤트 스레드 전용
+  int last_a_step_{0};  // 이벤트 스레드 전용
+  static constexpr int64_t kMaxRiseWindow = 64;
+  int64_t rise_ts_[kMaxRiseWindow]{};  // 이벤트 스레드 전용: 최근 A 상승 에지 시각
+  int64_t rise_count_{0};  // 이벤트 스레드 전용
+  int64_t freq_window_{8};
   double stop_timeout_{0.5};
   bool reverse_{true};
   double meters_per_pulse_{0.00412};
@@ -306,7 +366,11 @@ private:
 
   std::atomic<int64_t> encoder_count_{0};
   std::atomic<int64_t> pulse_count_{0};
+  std::atomic<int64_t> missed_edges_{0};
   std::atomic<int> direction_{0};
+  std::atomic<double> frequency_hz_{0.0};
+  std::atomic<double> period_ms_{0.0};
+  std::atomic<int64_t> last_edge_ns_{0};
   int64_t last_move_ns_{0};
   std::atomic<bool> running_{false};
   std::thread event_thread_;
@@ -317,6 +381,8 @@ private:
   rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr speed_pub_;
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr dist_pub_;
   rclcpp::Subscription<std_msgs::msg::Int32>::SharedPtr throttle_sub_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr freq_pub_;
+  rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr period_pub_;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::TimerBase::SharedPtr print_timer_;
 };
