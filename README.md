@@ -50,4 +50,5 @@ ros2 launch autorace_bringup autorace.launch.py record:=true
 - `drive_record.py`: 키보드/조이스틱 수동 주행 + 녹화 (이 스크립트가 카메라를 직접 열기 때문에 camera_node 와 동시 실행 X)
 - `bag_to_images.py`, `bag_to_video.py`: rosbag → 라벨링 사진 / mp4
 - [datasets/](datasets/): 2026-11-23 트랙 데이터
+- [docs/training_guide.md](docs/training_guide.md): YOLO 재학습 가이드라인
 - `record:=true` 로 자율주행하면 `datasets/bags/` 에 이미지 + 명령 + PWM + 엔코더가 쌓임 (모방학습용)

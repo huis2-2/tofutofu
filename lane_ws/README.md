@@ -20,7 +20,7 @@ Pure Pursuit, lookahead `Ld = lookahead_base + lookahead_gain * v` (속도 비�
 
 카메라가 어안이라 `lane.yaml` 의 높이·각도 근사만으로는 거리가 부정확합니다. 두 단계로 맞춥니다 (camera_node 끄고).
 
-**0. 패턴 만들기** → 아이폰으로 AirDrop, 사진 앱에서 열고 화면 탭(UI 숨김), 밝기 최대, 자동 잠금 끔
+**0. 패턴 만들기** (이미 만들어 둔 것: `tools/phone_patterns/`) → 아이폰으로 AirDrop, 사진 앱에서 열고 화면 탭(UI 숨김), 밝기 최대, 자동 잠금 끔
 ```bash
 cd ~/tofutofu/lane_ws/tools
 python3 make_phone_pattern.py        # phone_checker.png (내부 코너 5x14, 한 칸 8.28mm), phone_marker.png (흰 화면)
